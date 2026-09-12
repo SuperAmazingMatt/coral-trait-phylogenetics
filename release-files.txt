@@ -1,0 +1,12 @@
+.gitattributes
+.github/workflows/validate.yml
+.gitignore
+R/workflow.R
+README.md
+docs/DATA_POLICY.md
+docs/METHODS.md
+release-files.txt
+scripts/check_release.py
+scripts/install_dependencies.R
+scripts/run_workflow.R
+tests/test_pipeline.R
