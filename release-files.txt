@@ -2,9 +2,17 @@
 .github/workflows/validate.yml
 .gitignore
 R/workflow.R
+R/gallery_plots.R
 README.md
+docs/.nojekyll
 docs/DATA_POLICY.md
 docs/METHODS.md
+docs/index.html
+docs/styles.css
+docs/gallery.js
+docs/figures/synthetic_imputation.svg
+docs/figures/synthetic_pca.svg
+docs/figures/synthetic_correlation.svg
 docs/figures/synthetic_tree.svg
 docs/figures/synthetic_workflow.svg
 docs/workflow-outputs.md

@@ -146,7 +146,7 @@ class ReleaseBoundaryTests(unittest.TestCase):
         self.write("raw.csv", "value\n1\n")
         self.assertTrue(release.check())
 
-    def test_only_the_two_reviewed_svg_paths_are_permitted(self):
+    def test_only_the_reviewed_svg_paths_are_permitted(self):
         self.write("other.svg", svg())
         self.manifest("other.svg")
         self.assertTrue(release.check())
@@ -165,6 +165,13 @@ class ReleaseBoundaryTests(unittest.TestCase):
     def test_missing_file_fails(self):
         self.manifest("README.md")
         self.assertTrue(release.check())
+
+    def test_pages_marker_is_empty_and_cannot_hide_content(self):
+        self.manifest("docs/.nojekyll")
+        self.write("docs/.nojekyll", "")
+        self.assertEqual(release.check(), [])
+        self.write("docs/.nojekyll", "Unreviewed content")
+        self.assertIn("The Pages configuration marker must be empty.", release.check())
 
     def test_size_binary_and_encoding_limits_apply_to_reviewed_figures(self):
         figure = "docs/figures/synthetic_tree.svg"
@@ -201,6 +208,109 @@ class ReleaseBoundaryTests(unittest.TestCase):
             self.assertTrue(release.check(tracked=True))
         with patch.object(release, "git", side_effect=[b"release-files.txt\x00", b"README.md\n"]):
             self.assertTrue(release.check(tracked=True))
+
+
+class StaticSiteBoundaryTests(unittest.TestCase):
+    allowed = release.SITE_FILES | release.SVG_FILES | {
+        "docs/.nojekyll", "docs/METHODS.md", "docs/DATA_POLICY.md",
+    }
+
+    def test_site_assets_and_reviewed_figure_links_are_accepted(self):
+        content = (
+            '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            '<link rel="stylesheet" href="styles.css">'
+            '<script src="gallery.js" defer></script></head><body>'
+            '<nav><a href="#tree">Tree</a><a href="METHODS.md">Methods</a></nav>'
+            '<figure id="tree"><img src="figures/synthetic_tree.svg" '
+            'alt="Entirely synthetic phylogenetic tree"></figure>'
+            '<a href="' + release.REPOSITORY_URL + '">Repository</a>'
+            '</body></html>'
+        )
+        self.assertEqual(release.check_html(content, self.allowed), [])
+
+    def test_actual_site_assets_pass_their_boundaries(self):
+        self.assertEqual(release.check_html(
+            (release.ROOT / "docs/index.html").read_text(encoding="utf-8"), self.allowed), [])
+        self.assertEqual(release.check_css(
+            (release.ROOT / "docs/styles.css").read_text(encoding="utf-8")), [])
+        self.assertEqual(release.check_javascript(
+            (release.ROOT / "docs/gallery.js").read_text(encoding="utf-8")), [])
+
+    def test_images_cannot_escape_docs_or_fetch_external_content(self):
+        for path in (
+            "../README.md", "/figures/synthetic_tree.svg", "figures/../synthetic_tree.svg",
+            "%2e%2e/README.md", "figures%2fsynthetic_tree.svg", "//example.invalid/tree.svg",
+            "https://example.invalid/tree.svg", "data:image/svg+xml,hidden",
+            "figures/unreviewed.svg", "figures/synthetic_tree.svg?tracking=1",
+            "figures/synthetic_tree.svg#hidden",
+        ):
+            with self.subTest(path=path):
+                self.assertTrue(release.check_html(f'<img src="{path}" alt="Synthetic tree">', self.allowed))
+
+    def test_no_inline_active_markup_or_embedded_documents(self):
+        for content in (
+            '<iframe src="figures/synthetic_tree.svg"></iframe>',
+            '<object data="figures/synthetic_tree.svg"></object>',
+            '<form action="https://example.invalid/"></form>',
+            '<script>alert(1)</script>',
+            '<script src="gallery.js">alert(1)</script>',
+            '<script type="module" src="gallery.js"></script>',
+            '<style>@import "https://example.invalid/theme.css";</style>',
+            '<div style="background:red">Hidden style</div>',
+            '<button onclick="alert(1)">Open</button>',
+            '<meta http-equiv="refresh" content="0;url=https://example.invalid/">',
+            '<img src="figures/synthetic_tree.svg">',
+        ):
+            with self.subTest(content=content):
+                self.assertTrue(release.check_html(content, self.allowed))
+
+    def test_links_are_local_or_belong_to_the_public_repository(self):
+        for destination in (
+            "https://github.com/another/repository", "https://example.invalid/",
+            release.REPOSITORY_URL + ".invalid", release.REPOSITORY_URL + "/../private",
+            release.REPOSITORY_URL + "/%2e%2e/private", "javascript:alert(1)", "../README.md",
+        ):
+            with self.subTest(destination=destination):
+                self.assertTrue(release.check_html(f'<a href="{destination}">Link</a>', self.allowed))
+        self.assertTrue(release.check_html('<a href="#missing">Missing section</a>', self.allowed))
+
+    def test_stylesheet_accepts_layout_but_no_network_or_embedded_assets(self):
+        self.assertEqual(release.check_css(
+            ':root { --ink: #173b40; } @media (max-width: 50rem) { .grid { display: block; } }'), [])
+        for content in (
+            '@import "https://example.invalid/theme.css";',
+            'body { background: url(https://example.invalid/pixel); }',
+            'body { background: url(data:image/png;base64,AAAA); }',
+            'body { background: image-set("https://example.invalid/image.png" 1x); }',
+            'body { width: expression(alert(1)); }',
+            'body { background: u' + chr(92) + '72l(hidden); }',
+        ):
+            with self.subTest(content=content):
+                self.assertTrue(release.check_css(content))
+
+    def test_gallery_script_is_dom_only_and_has_no_dynamic_loads(self):
+        self.assertEqual(release.check_javascript(
+            'document.querySelectorAll("button").forEach(button => {'
+            'button.addEventListener("click", () => { button.hidden = false; }); });'), [])
+        for content in (
+            'fetch("/private")', 'new XMLHttpRequest()', 'new WebSocket("wss://example.invalid")',
+            'import("./unreviewed.js")', 'eval("alert(1)")', 'new Function("return 1")',
+            'localStorage.getItem("example")', 'document.cookie',
+            'element.innerHTML = value', 'element.setAttribute("src", value)',
+            'element.src = value', 'window.location = value',
+        ):
+            with self.subTest(content=content):
+                self.assertTrue(release.check_javascript(content))
+
+    def test_html_css_and_js_are_only_allowed_at_reviewed_paths(self):
+        for name in ("other.html", "docs/extra.js", "docs/extra.css"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / name).parent.mkdir(parents=True, exist_ok=True)
+                (root / name).write_text("Unexpected content", encoding="utf-8")
+                (root / "release-files.txt").write_text("release-files.txt\n" + name + "\n", encoding="utf-8")
+                with patch.object(release, "ROOT", root):
+                    self.assertIn("Invalid allowlist path or file type.", release.check())
 
 
 if __name__ == "__main__":
