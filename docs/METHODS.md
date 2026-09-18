@@ -38,6 +38,8 @@ The workflow applies centred, scaled PCA and Spearman correlations to the contin
 
 The example produces two SVG figures, synthetic evaluation and signal summaries, PCA variance fractions, package versions, and a provenance note under ignored `artifacts/synthetic-validation/`. It does not export the complete input table or tree. Every figure states that it is synthetic, including its topology and branch lengths.
 
+The [workflow gallery](workflow-outputs.md) publishes reviewed copies of the two synthetic figures. `scripts/export_gallery.R` regenerates them from the workflow and adds accessible provenance descriptions. Empirical figures and generated numerical tables are excluded from publication.
+
 The automated checks exercise fixture reproducibility, name alignment, rejected invalid inputs, preservation of observed data, and downstream analysis. The end-to-end run additionally exercises plotting and output writing. Package and R versions are recorded without local paths, usernames, or machine details. Seeds do not guarantee identical results across package or platform changes.
 
 The core packages are [ape](https://cran.r-project.org/package=ape), [phytools](https://cran.r-project.org/package=phytools), [missForest](https://cran.r-project.org/package=missForest), and [caper](https://cran.r-project.org/package=caper). Use `citation("package-name")` in the environment used for an analysis to retrieve its software citation.

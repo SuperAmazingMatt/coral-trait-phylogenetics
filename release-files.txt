@@ -5,8 +5,13 @@ R/workflow.R
 README.md
 docs/DATA_POLICY.md
 docs/METHODS.md
+docs/figures/synthetic_tree.svg
+docs/figures/synthetic_workflow.svg
+docs/workflow-outputs.md
 release-files.txt
 scripts/check_release.py
+scripts/export_gallery.R
 scripts/install_dependencies.R
 scripts/run_workflow.R
 tests/test_pipeline.R
+tests/test_release.py

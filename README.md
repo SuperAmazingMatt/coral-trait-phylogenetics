@@ -23,6 +23,14 @@ flowchart TD
 
 The workflow demonstrates data validation, tree matching, missing-data evaluation, phylogenetic predictors, Pagel's lambda, Blomberg's K, binary D, and multivariate exploration. See [methods and assumptions](docs/METHODS.md) for the scope of each step.
 
+## Selected workflow outputs
+
+![Synthetic workflow outputs: missing-value masking, imputation evaluation, PCA, and trait correlations. No empirical research findings are shown.](docs/figures/synthetic_workflow.svg)
+
+*An example run using entirely simulated inputs. The displayed patterns and estimates are synthetic, with no mapping to the study's species or findings.*
+
+**[Explore the workflow and example outputs](docs/workflow-outputs.md)** for the phylogenetic tree, figure explanations, and reproduction instructions.
+
 ## Run locally
 
 Install R 4.4 or later, then run these commands from the repository root:
@@ -44,6 +52,8 @@ The dependency installer uses CRAN. Exact installed versions are recorded by the
 | `R/` | Analysis functions and synthetic fixture generation |
 | `scripts/run_workflow.R` | End-to-end research methods example |
 | `tests/test_pipeline.R` | Validation and analysis behaviour checks |
+| `docs/workflow-outputs.md` | Illustrated gallery of synthetic workflow outputs |
+| `scripts/export_gallery.R` | Regenerate the two reviewed gallery illustrations |
 | `docs/METHODS.md` | Methods, assumptions, and interpretation limits |
 | `docs/DATA_POLICY.md` | Publication boundaries and release review |
 | `.github/workflows/validate.yml` | Automated release checks and R validation |
@@ -55,4 +65,4 @@ GitHub Actions checks the publication allowlist, runs the tests, and executes th
 
 Successful execution validates this distributed workflow. It does **not** establish that every historical research script runs unchanged, reproduce the withheld manuscript results, or validate biological conclusions. This is a newly organized implementation of the methods, with transparent runnable examples.
 
-Only software and methods documentation are published. No original manuscript, research table, saved R session, empirical tree, species key, institutional details, or private review records are included. Read the [data policy](docs/DATA_POLICY.md) before adding files.
+Only software, methods documentation, and two reviewed synthetic illustrations are published. No original manuscript, research table, saved R session, empirical tree, species key, institutional details, or private review records are included. Read the [data policy](docs/DATA_POLICY.md) before adding files.

@@ -7,6 +7,7 @@ This repository shares research methods while the underlying empirical data and 
 - Newly organized source code for the computational workflow.
 - Synthetic input generation, tests, and methods documentation.
 - Automated validation with generated examples.
+- Two reviewed synthetic SVG illustrations in the [workflow gallery](workflow-outputs.md).
 
 ## Withheld
 
@@ -19,7 +20,9 @@ Replacing species names on an empirical tree would still reveal its structure. T
 
 ## Release controls
 
-`release-files.txt` is an explicit publication allowlist. The release checker rejects unexpected tracked files, common data formats, private filesystem paths, email addresses, and common credential patterns. Generated outputs belong in ignored `artifacts/`; they are not uploaded by CI.
+`release-files.txt` is an explicit publication allowlist. The release checker rejects unexpected tracked files, common data formats, private filesystem paths, email addresses, and common credential patterns. Generated run outputs belong in ignored `artifacts/`; they are not uploaded by CI. The only published illustrations are the two separately reviewed synthetic SVGs under `docs/figures/`, reproduced with `scripts/export_gallery.R`.
+
+The gallery SVGs must contain synthetic provenance text and self-contained static drawing elements. Active content, external references, and embedded images are rejected. Review the visible drawing as well as its source: text converted to vector outlines cannot be checked reliably by searching for names alone.
 
 Before each release, review the staged diff and commit metadata as well as the allowlist. Use a non-personal commit identity and a GitHub no-reply address. A GitHub repository is still associated with the publishing account; repository controls cannot hide information already displayed by that account.
 
