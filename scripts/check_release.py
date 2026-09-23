@@ -23,6 +23,12 @@ SVG_FILES = {
 PNG_FILES = {
     "docs/figures/method_tree.png": (2400, 2400),
     "docs/figures/method_matrix.png": (1800, 1680),
+    "docs/figures/method_distributions.png": (2000, 1400),
+    "docs/figures/method_coverage.png": (2000, 1400),
+    "docs/figures/method_categorical_tree.png": (2400, 2400),
+    "docs/figures/method_signal.png": (2000, 1400),
+    "docs/figures/method_tree_sensitivity.png": (2000, 1400),
+    "docs/figures/method_brownian.png": (2000, 1400),
 }
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 SITE_FILES = {"docs/index.html", "docs/styles.css", "docs/gallery.js"}
@@ -75,7 +81,7 @@ def git(*args):
 
 
 def check_png(raw, name):
-    """Check the two reviewed raster illustrations, not arbitrary image uploads.
+    """Check the eight reviewed raster illustrations, not arbitrary image uploads.
 
     Structure checks cannot identify empirical pixels. Review the generator and
     visible drawing separately, and reproduce the image before publication.

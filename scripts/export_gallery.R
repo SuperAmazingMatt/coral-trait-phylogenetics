@@ -1,6 +1,11 @@
 #!/usr/bin/env Rscript
 # Regenerate the synthetic documentation illustrations from public code.
 # Run from the repository root; no external input paths are accepted.
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 1L || (length(args) && args[[1]] != "--local-only")) {
+  stop("The only supported option is --local-only.", call. = FALSE)
+}
+local_only <- identical(args, "--local-only")
 if (!file.exists(file.path("scripts", "run_workflow.R"))) {
   stop("Run this command from the repository root.", call. = FALSE)
 }
@@ -10,6 +15,11 @@ source(file.path("R", "gallery_plots.R"))
 # The original synthetic workflow output is kept separate from this presentation.
 gallery_output_dir <- file.path(output_dir, "gallery")
 write_gallery_figures(fixture$tree, informed$traits, scores, summaries, gallery_output_dir)
+
+if (local_only) {
+  cat("Rendered five synthetic SVGs under ignored artifacts; published copies unchanged.\n")
+  quit(status = 0L)
+}
 
 gallery_dir <- file.path("docs", "figures")
 dir.create(gallery_dir, recursive = TRUE, showWarnings = FALSE)
@@ -28,7 +38,8 @@ figures <- list(
   synthetic_pca.svg = c(
     "Synthetic principal component analysis",
     paste("PCA scores and variance explained for standardised imputed synthetic traits.",
-          "Colours indicate artificial states. This is descriptive and does not",
+          "Loading-direction arrows share one display multiplier; colours indicate artificial states.",
+          "This is descriptive and does not",
           "propagate imputation uncertainty. No study findings are shown.")
   ),
   synthetic_correlation.svg = c(

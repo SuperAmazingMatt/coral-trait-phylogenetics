@@ -158,6 +158,55 @@ plot_gallery_pca <- function(pca, traits) {
   graphics::points(pca$x[, 1], pca$x[, 2], pch = 21,
                    bg = colors[as.character(traits$State_A)], col = p["paper"],
                    lwd = 1.5, cex = 1.55)
+  # Keep the original scores, and multiply every rotation vector by the same
+  # display factor. These are loading directions, not correlations or scores.
+  rotation <- pca$rotation[, 1:2, drop = FALSE]
+  limits <- cbind(ifelse(rotation[, 1] >= 0, xlim[2], -xlim[1]),
+                  ifelse(rotation[, 2] >= 0, ylim[2], -ylim[1]))
+  nonzero <- abs(rotation) > .Machine$double.eps
+  arrow_scale <- 0.72 * min(limits[nonzero] / abs(rotation[nonzero]))
+  endpoints <- rotation * arrow_scale
+  graphics::segments(0, 0, endpoints[, 1], endpoints[, 2],
+                     col = p["paper"], lwd = 4.5)
+  graphics::arrows(0, 0, endpoints[, 1], endpoints[, 2], length = 0.11,
+                   angle = 24, col = p["ink"], lwd = 2)
+
+  # Try nearby label positions and prefer clear space away from observations
+  # and earlier labels. All label boxes stay within the score panel.
+  labels <- gsub("_", " ", rownames(rotation), fixed = TRUE)
+  boxes <- matrix(numeric(), ncol = 4)
+  for (i in seq_len(nrow(rotation))) {
+    half_width <- graphics::strwidth(labels[i], cex = 13 / 12) / 2 + diff(xlim) * 0.012
+    half_height <- graphics::strheight(labels[i], cex = 13 / 12) / 2 + diff(ylim) * 0.012
+    offsets <- expand.grid(x = c(-1, 0, 1), y = c(-1, 0, 1))
+    offsets <- offsets[offsets$x != 0 | offsets$y != 0, ]
+    candidates <- cbind(endpoints[i, 1] + offsets$x * (half_width + diff(xlim) * 0.025),
+                        endpoints[i, 2] + offsets$y * (half_height + diff(ylim) * 0.025))
+    candidates[, 1] <- pmax(xlim[1] + half_width, pmin(xlim[2] - half_width, candidates[, 1]))
+    candidates[, 2] <- pmax(ylim[1] + half_height, pmin(ylim[2] - half_height, candidates[, 2]))
+    candidate_boxes <- cbind(candidates[, 1] - half_width, candidates[, 1] + half_width,
+                             candidates[, 2] - half_height, candidates[, 2] + half_height)
+    penalty <- apply(candidate_boxes, 1, function(box) {
+      points_inside <- pca$x[, 1] >= box[1] - diff(xlim) * 0.015 &
+        pca$x[, 1] <= box[2] + diff(xlim) * 0.015 &
+        pca$x[, 2] >= box[3] - diff(ylim) * 0.020 &
+        pca$x[, 2] <= box[4] + diff(ylim) * 0.020
+      overlapping_labels <- if (nrow(boxes)) sum(box[1] < boxes[, 2] & box[2] > boxes[, 1] &
+        box[3] < boxes[, 4] & box[4] > boxes[, 3]) else 0
+      sum(points_inside) + 10 * overlapping_labels
+    })
+    # Prefer the radial side of a loading when several positions are clear.
+    radial <- candidates[, 1] * rotation[i, 1] / diff(xlim) +
+      candidates[, 2] * rotation[i, 2] / diff(ylim)
+    chosen <- order(penalty, -radial)[1]
+    box <- candidate_boxes[chosen, ]
+    graphics::segments(endpoints[i, 1], endpoints[i, 2],
+                       candidates[chosen, 1], candidates[chosen, 2], col = p["muted"], lwd = 0.7)
+    graphics::rect(box[1], box[3], box[2], box[4], col = p["paper"], border = NA)
+    graphics::text(candidates[chosen, 1], candidates[chosen, 2], labels[i],
+                   cex = 13 / 12, font = 2, col = p["ink"])
+    boxes <- rbind(boxes, box)
+  }
   graphics::axis(1, at = xticks, col = NA, col.ticks = NA, line = 0.3)
   graphics::axis(2, at = yticks, col = NA, col.ticks = NA, las = 1, line = 0.3)
   gallery_canvas()
@@ -181,8 +230,10 @@ plot_gallery_pca <- function(pca, traits) {
     graphics::rect(758, y - 7, 758 + 192 * variance[i] / 100, y - 1,
                    col = p["teal"], border = NA)
   }
-  gallery_text(758, 139, "Descriptive only; imputation", 13, p["muted"])
-  gallery_text(758, 119, "uncertainty is not propagated.", 13, p["muted"])
+  gallery_text(758, 165, "Arrows: loading directions", 13, p["ink"])
+  gallery_text(758, 145, "scaled together for display.", 13, p["muted"])
+  gallery_text(758, 112, "Imputation uncertainty", 13, p["muted"])
+  gallery_text(758, 92, "is not propagated.", 13, p["muted"])
 }
 
 plot_gallery_correlation <- function(correlation) {
