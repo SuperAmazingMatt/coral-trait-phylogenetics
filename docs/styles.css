@@ -28,6 +28,7 @@ nav a:hover{color:var(--teal)}
 h1,h2,h3,p,figure{margin-top:0}
 h1{font-family:var(--serif);font-size:clamp(47px,5.15vw,75px);line-height:1.06;letter-spacing:-.048em;font-weight:400;margin-bottom:29px}
 h1 em{font-weight:400;color:var(--teal)}
+.research-dates{color:var(--muted);font-size:13px;line-height:1.8;margin-bottom:22px}
 .hero-intro{color:var(--muted);max-width:465px;font-size:17px;line-height:1.8;margin-bottom:31px}
 .hero-actions{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
 .button{background:var(--ink);color:white;text-decoration:none;padding:13px 23px;border-radius:4px;font-size:13px;font-weight:600;display:inline-flex;gap:23px;align-items:center;transition:background .18s}

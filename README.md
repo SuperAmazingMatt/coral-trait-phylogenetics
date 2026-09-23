@@ -2,6 +2,8 @@
 
 **Trait ecology · Evolutionary relationships · Comparative analysis in R**
 
+**Original research:** April 2023–January 2024 · **Public release:** September 2026
+
 How are coral traits distributed across evolutionary history? This research brings together trait compilation, taxonomic reconciliation, phylogenetic signal analysis, simulation, missing-data assessment, and scientific visualization.
 
 <p align="center">
