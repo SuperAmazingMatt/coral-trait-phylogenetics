@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A visual guide to coral trait phylogenetics: trait imputation, evolutionary structure, and multivariate exploration, illustrated with synthetic examples.">
+  <meta name="description" content="A visual guide to coral trait research: data preparation, trait mapping, phylogenetic signal, tree uncertainty, simulation and supporting analyses.">
   <meta name="theme-color" content="#183b40">
   <title>Coral trait phylogenetics — Research workflow</title>
   <link rel="stylesheet" href="styles.css">
@@ -20,7 +20,7 @@
       <a href="#approach">The approach</a>
       <a href="#figures">Explore figures</a>
       <a href="#reproduce">Run the workflow</a>
-      <a class="source-link" href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics">GitHub <span aria-hidden="true">↗</span></a>
+      <a class="source-link" href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics">GitHub project <span aria-hidden="true">↗</span></a>
     </nav>
   </header>
 
@@ -29,75 +29,79 @@
       <div class="hero-copy">
         <p class="eyebrow"><span class="small-line"></span> Research methods / Coral ecology</p>
         <h1 id="hero-title">Coral traits.<br><em>An evolutionary<br>perspective.</em></h1>
-        <p class="hero-intro">Connecting incomplete trait records, phylogenetic relationships, and patterns of variation through a reproducible research workflow.</p>
+        <p class="hero-intro">From compiling trait records to comparing evolutionary patterns: a research workflow for understanding variation across a phylogeny.</p>
         <div class="hero-actions">
           <a class="button" href="#figures">Explore the figures <span aria-hidden="true">↓</span></a>
           <a class="text-link" href="#approach">Follow the methods <span aria-hidden="true">→</span></a>
         </div>
-        <p class="scope-note"><span class="scope-dot" aria-hidden="true"></span>Research software. Synthetic illustrations. Empirical findings reserved for publication.</p>
+        <p class="scope-note"><span class="scope-dot" aria-hidden="true"></span>Research methods illustrated with independently simulated trees and traits.</p>
       </div>
       <figure class="hero-figure">
         <div class="figure-overline"><span>01 / Evolutionary structure</span><span>Synthetic example</span></div>
-        <img src="figures/synthetic_tree.svg" alt="Circular phylogeny generated from a simulated tree, with anonymous tips and artificial trait states." width="900" height="900" fetchpriority="high">
-        <figcaption>A new tree, generated entirely in code.<br><span>No branch or tip identifies a study species.</span></figcaption>
+        <img src="figures/method_tree.png" alt="A dense circular simulated phylogeny with continuous branch colours illustrating a simulated trait mapped across evolutionary relationships." width="2400" height="2400" fetchpriority="high">
+        <figcaption>Mapping a continuous trait onto a phylogeny.<br><span>Simulated tree and Brownian-motion trait illustration.</span></figcaption>
       </figure>
     </section>
 
     <section class="approach wrap" id="approach" aria-labelledby="approach-title">
       <div class="section-heading">
         <p class="eyebrow">The approach</p>
-        <h2 id="approach-title">From incomplete observations<br>to interpretable structure.</h2>
-        <p>Each stage makes an assumption explicit, preserves the link between taxa and traits, and produces an output that can be checked.</p>
+        <h2 id="approach-title">From trait records<br>to comparative analysis.</h2>
+        <p>The principal research follows observed traits through preparation, visualization and phylogenetic analysis, with simulation used to examine the behaviour of the signal metrics.</p>
       </div>
       <ol class="method-steps">
-        <li><span class="step-number">01</span><h3>Align</h3><p>Validate trait types and branch lengths. Match records to tree tips by identifier before any analysis.</p><span class="method-label">Schema &amp; tree matching</span></li>
-        <li><span class="step-number">02</span><h3>Reconstruct</h3><p>Hide known synthetic values and compare forest imputation with and without tree-derived predictors.</p><span class="method-label">Missing-data evaluation</span></li>
-        <li><span class="step-number">03</span><h3>Interpret</h3><p>Estimate signal from observed entries. Explore completed traits through PCA and descriptive correlations.</p><span class="method-label">Phylogenetic &amp; multivariate analysis</span></li>
+        <li><span class="step-number">01</span><h3>Compile</h3><p>Clean trait records, harmonize units and categories, summarize repeated observations and resolve duplicates.</p><span class="method-label">Trait preparation</span></li>
+        <li><span class="step-number">02</span><h3>Align</h3><p>Reconcile taxonomic names with existing phylogenies, retain observed missingness and prune trees for each trait.</p><span class="method-label">Taxonomy &amp; tree matching</span></li>
+        <li><span class="step-number">03</span><h3>Explore</h3><p>Describe distributions and coverage, inspect pairwise relationships using available observations, and map traits onto trees.</p><span class="method-label">Distributions &amp; trait mapping</span></li>
+        <li><span class="step-number">04</span><h3>Measure</h3><p>Estimate and compare Pagel’s λ, Blomberg’s K and Fritz–Purvis’ D, with trait preparation suited to each analysis.</p><span class="method-label">Phylogenetic signal</span></li>
+        <li><span class="step-number">05</span><h3>Repeat</h3><p>Run signal analyses across posterior phylogenies and summarize how estimates vary among trees.</p><span class="method-label">Tree uncertainty</span></li>
+        <li><span class="step-number">06</span><h3>Simulate</h3><p>Generate traits under Brownian motion and examine the behaviour of λ and K against that reference model.</p><span class="method-label">Metric comparison</span></li>
       </ol>
+      <div class="research-extensions"><h3>Supporting research</h3><div><p>Related studies compare random-forest imputation with and without phylogenetic predictors, examine signal after imputation, and explore completed trait tables with PCA. Further work investigates alternative phylogenies, Delta for categorical signal, and alternative trait encodings.</p><p>Earlier exploratory work considered geographic assemblages and phylogenetic diversity. The compact public R example implements a selected set of methods using synthetic inputs; the project overview describes the broader research.</p></div></div>
     </section>
 
     <section class="gallery-section" id="figures" aria-labelledby="gallery-title">
       <div class="wrap">
         <div class="gallery-heading">
-          <div><p class="eyebrow">A closer look</p><h2 id="gallery-title">Four views of the workflow.</h2></div>
+          <div><p class="eyebrow">A closer look</p><h2 id="gallery-title">The methods, in view.</h2></div>
           <p>Choose a view to explore the method.<br>All plotted values and relationships are synthetic.</p>
         </div>
         <div class="figure-tabs" role="tablist" aria-label="Workflow figures" hidden>
-          <button id="tab-tree" role="tab" aria-controls="panel-tree" aria-selected="false" tabindex="-1"><span>01</span> Phylogeny</button>
-          <button id="tab-imputation" role="tab" aria-controls="panel-imputation" aria-selected="true" tabindex="0"><span>02</span> Imputation</button>
+          <button id="tab-tree" role="tab" aria-controls="panel-tree" aria-selected="true" tabindex="0"><span>01</span> Phylogeny</button>
+          <button id="tab-imputation" role="tab" aria-controls="panel-imputation" aria-selected="false" tabindex="-1"><span>02</span> Imputation</button>
           <button id="tab-pca" role="tab" aria-controls="panel-pca" aria-selected="false" tabindex="-1"><span>03</span> Trait space</button>
           <button id="tab-correlation" role="tab" aria-controls="panel-correlation" aria-selected="false" tabindex="-1"><span>04</span> Associations</button>
         </div>
 
         <section class="figure-panel" id="panel-tree" role="tabpanel" aria-labelledby="tab-tree" tabindex="0">
-          <figure><img src="figures/synthetic_tree.svg" alt="A circular synthetic phylogeny with anonymous taxa and a key for two artificial states." width="900" height="900" loading="lazy"><figcaption>Entirely simulated topology, branch lengths, and traits.</figcaption></figure>
-          <div class="figure-story"><p class="eyebrow">01 / Phylogeny</p><h3>Put traits in <br>evolutionary context.</h3><p>The branching structure provides a framework for comparing traits across related taxa. Here, every branch is simulated and every tip is an artificial identifier.</p><dl><dt>Read the figure</dt><dd>Follow the branches from the centre towards the tips. Colours distinguish two artificial states.</dd><dt>Method</dt><dd>Coalescent tree simulation, trait matching, and categorical state mapping.</dd><dt>Interpretation</dt><dd>The circular arrangement is a display choice. It does not change the relationships in the simulated tree.</dd></dl><a class="text-link" href="figures/synthetic_tree.svg" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
+          <figure><img src="figures/method_tree.png" alt="A circular simulated phylogeny with a continuous colour gradient along its branches, illustrating trait mapping." width="2400" height="2400" loading="lazy"><figcaption>Simulated illustration: a new tree and Brownian-motion trait values.</figcaption></figure>
+          <div class="figure-story"><p class="eyebrow">01 / Phylogeny</p><h3>Put traits in <br>evolutionary context.</h3><p>Trait mapping places variation within a branching framework. This illustration uses a newly simulated tree and a continuous trait generated under Brownian motion.</p><dl><dt>Read the figure</dt><dd>Follow branches from the centre towards the tips. The changing colours illustrate a continuous trait mapped along the tree.</dd><dt>Method</dt><dd>Pure-birth tree simulation, Brownian-motion trait simulation and continuous mapping with phytools contMap.</dd><dt>Interpretation</dt><dd>The colours interpolate values reconstructed from simulated tip traits. The circular layout is a presentation choice.</dd></dl><a class="text-link" href="figures/method_tree.png" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
         </section>
 
         <section class="figure-panel" id="panel-imputation" role="tabpanel" aria-labelledby="tab-imputation" tabindex="0">
           <figure><img src="figures/synthetic_imputation.svg" alt="A comparison of held-out synthetic trait prediction errors for forest imputation with and without phylogenetic predictors." width="1000" height="740" loading="lazy"><figcaption>Prediction errors from one fixed synthetic masking experiment.</figcaption></figure>
-          <div class="figure-story"><p class="eyebrow">02 / Imputation</p><h3>Check the values <br>we fill in.</h3><p>Known values are temporarily hidden so that predictions can be evaluated. Both approaches see the same masked table; one also receives predictors derived from the tree.</p><dl><dt>Read the figure</dt><dd>Lower error indicates closer predictions for this synthetic example. The paired values show the difference between the two fits.</dd><dt>Method</dt><dd>Random forest imputation, with and without phylogenetic eigenvectors.</dd><dt>Interpretation</dt><dd>A single mask is an execution example. It does not establish which approach is better for the empirical study.</dd></dl><a class="text-link" href="figures/synthetic_imputation.svg" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
+          <div class="figure-story"><p class="eyebrow">02 / Supporting analysis</p><h3>Check the values <br>we fill in.</h3><p>Imputation is a related investigation. In this executable example, known values are temporarily hidden so predictions can be evaluated. Both approaches see the same masked table; one also receives tree-derived predictors.</p><dl><dt>Read the figure</dt><dd>Lower error indicates closer predictions for this synthetic example. The paired values show the difference between the two fits.</dd><dt>Method</dt><dd>Random forest imputation, with and without phylogenetic eigenvectors.</dd><dt>Interpretation</dt><dd>A single mask is an execution example. It does not establish which approach is better for the empirical study.</dd></dl><a class="text-link" href="figures/synthetic_imputation.svg" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
         </section>
 
         <section class="figure-panel" id="panel-pca" role="tabpanel" aria-labelledby="tab-pca" tabindex="0">
           <figure><img src="figures/synthetic_pca.svg" alt="Principal component analysis of imputed synthetic continuous traits, with clearly labelled axes and artificial taxon points." width="1000" height="740" loading="lazy"><figcaption>Descriptive PCA of the completed synthetic trait table.</figcaption></figure>
-          <div class="figure-story"><p class="eyebrow">03 / Trait space</p><h3>See variation <br>across traits.</h3><p>Principal component analysis brings several continuous traits into a shared view. The inputs are centred and scaled before projection.</p><dl><dt>Read the figure</dt><dd>Each point represents an artificial taxon. Nearby points have similar scores on the displayed components.</dd><dt>Method</dt><dd>Standardized PCA after imputation with tree-derived predictors.</dd><dt>Interpretation</dt><dd>This view is descriptive. Ordinary PCA does not adjust for phylogenetic covariance or propagate imputation uncertainty.</dd></dl><a class="text-link" href="figures/synthetic_pca.svg" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
+          <div class="figure-story"><p class="eyebrow">03 / Supporting analysis</p><h3>See variation <br>across traits.</h3><p>Principal component analysis brings several continuous traits into a shared view. This supporting analysis uses a completed trait table, with inputs centred and scaled before projection.</p><dl><dt>Read the figure</dt><dd>Each point represents an artificial taxon. Nearby points have similar scores on the displayed components.</dd><dt>Method</dt><dd>Standardized PCA after imputation with tree-derived predictors.</dd><dt>Interpretation</dt><dd>This view is descriptive. Ordinary PCA does not adjust for phylogenetic covariance or propagate imputation uncertainty.</dd></dl><a class="text-link" href="figures/synthetic_pca.svg" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
         </section>
 
         <section class="figure-panel" id="panel-correlation" role="tabpanel" aria-labelledby="tab-correlation" tabindex="0">
-          <figure><img src="figures/synthetic_correlation.svg" alt="A Spearman correlation matrix showing descriptive pairwise associations among simulated continuous traits." width="1000" height="740" loading="lazy"><figcaption>Rank correlations among imputed synthetic traits.</figcaption></figure>
-          <div class="figure-story"><p class="eyebrow">04 / Associations</p><h3>Inspect how <br>traits move together.</h3><p>A compact matrix summarizes pairwise rank associations. The colour scale makes the direction and magnitude of each synthetic association visible.</p><dl><dt>Read the figure</dt><dd>Values range from negative to positive association. Diagonal entries compare each trait with itself.</dd><dt>Method</dt><dd>Spearman correlations on the completed continuous trait columns.</dd><dt>Interpretation</dt><dd>These associations are descriptive, with no significance tests or claim of independent-species inference.</dd></dl><a class="text-link" href="figures/synthetic_correlation.svg" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
+          <figure><img src="figures/method_matrix.png" alt="A matrix of simulated continuous and categorical traits showing distributions, scatterplots, boxplots and categorical comparisons." width="1800" height="1680" loading="lazy"><figcaption>Simulated illustration of mixed-trait exploration.</figcaption></figure>
+          <div class="figure-story"><p class="eyebrow">04 / Associations</p><h3>Exploring traits <br>together.</h3><p>A pairs matrix combines views suited to different variable types. The principal research examines relationships using available observations; this illustration recreates the plotting approach with generated toy variables.</p><dl><dt>Read the figure</dt><dd>Diagonal panels show distributions. Other panels use point plots, boxplots and categorical summaries to inspect pairs of variables.</dd><dt>Method</dt><dd>Mixed continuous and categorical exploration with a GGally pairs matrix.</dd><dt>Interpretation</dt><dd>The panels demonstrate descriptive tools. The variables and their relationships were generated solely for the illustration.</dd></dl><a class="text-link" href="figures/method_matrix.png" target="_blank" rel="noopener">Open full-size figure <span aria-hidden="true">↗</span></a></div>
         </section>
       </div>
     </section>
 
     <section class="reproduce wrap" id="reproduce" aria-labelledby="reproduce-title">
-      <div><p class="eyebrow">Reproducible by design</p><h2 id="reproduce-title">Follow the analysis.<br>Run it yourself.</h2><p>The public workflow generates its own inputs, validates the data, fits the analyses, and exports the figures. The methods and their assumptions are documented alongside the code.</p><a class="text-link" href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics/blob/main/docs/METHODS.md">Read the methods <span aria-hidden="true">↗</span></a></div>
+      <div><p class="eyebrow">Explore the implementation</p><h2 id="reproduce-title">Follow the methods.<br>Run the example.</h2><p>The compact public workflow generates its own inputs and exercises alignment, imputation evaluation, signal estimation and multivariate exploration. Its methods and assumptions are documented alongside the code.</p><a class="text-link" href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics">Read the full GitHub project overview <span aria-hidden="true">↗</span></a></div>
       <div class="code-block"><div class="code-heading"><span>From the repository root</span><span>R 4.4+</span></div><pre><code>Rscript scripts/install_dependencies.R
 Rscript tests/test_pipeline.R
-Rscript scripts/export_gallery.R</code></pre><p>Fixed seeds · Anonymous synthetic inputs · Documented assumptions</p><a href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics">Get the source code <span aria-hidden="true">↗</span></a></div>
+Rscript scripts/run_workflow.R</code></pre><p>Fixed seeds · Synthetic inputs · Documented assumptions</p><a href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics/blob/main/docs/METHODS.md">Read the implementation notes <span aria-hidden="true">↗</span></a></div>
     </section>
-    <aside class="publication-note wrap" aria-label="Publication scope"><span class="scope-dot" aria-hidden="true"></span><p><strong>About the illustrations.</strong> These figures demonstrate the methods of a research project. Empirical data, species identities, tree structure, and findings are withheld for publication. <a href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics/blob/main/docs/DATA_POLICY.md">Data policy ↗</a></p></aside>
+    <aside class="publication-note wrap" aria-label="Illustration provenance"><span class="scope-dot" aria-hidden="true"></span><p><strong>About the illustrations.</strong> All displayed trees, traits and comparisons are independently simulated to explain the research methods. <a href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics/blob/main/docs/workflow-outputs.md">Figure notes ↗</a><a href="https://github.com/SuperAmazingMatt/coral-trait-phylogenetics/blob/main/docs/DATA_POLICY.md">Data policy ↗</a></p></aside>
   </main>
   <footer class="wrap"><span>Coral trait phylogenetics</span><span>Research methods &amp; reproducible software</span><a href="#main">Back to top ↑</a></footer>
 </body>

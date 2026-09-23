@@ -1,8 +1,10 @@
 """Exercise publication boundaries without storing any private examples."""
 
 import importlib.util
+import struct
 import tempfile
 import unittest
+import zlib
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,6 +22,90 @@ def svg(body="", attributes=""):
         '<title id="title">Synthetic example</title>'
         '<desc id="description">Entirely synthetic tree and traits.</desc>' + body + "</svg>"
     )
+
+
+def png_chunk(kind, payload=b""):
+    return (struct.pack(">I", len(payload)) + kind + payload +
+            struct.pack(">I", zlib.crc32(kind + payload) & 0xffffffff))
+
+
+def png_fixture(*, dimensions=(2, 2), encoding=(8, 2, 0, 0, 0),
+                before=b"", image_data=None, after=b""):
+    if image_data is None:
+        image_data = zlib.compress(b"\x00" * ((1 + dimensions[0] * 3) * dimensions[1]))
+    return (release.PNG_SIGNATURE +
+            png_chunk(b"IHDR", struct.pack(">IIBBBBB", *dimensions, *encoding)) +
+            before + png_chunk(b"IDAT", image_data) + png_chunk(b"IEND") + after)
+
+
+class PngBoundaryTests(unittest.TestCase):
+    name = "docs/figures/method_tree.png"
+
+    def test_checked_in_methods_figures_are_accepted(self):
+        for name in release.PNG_FILES:
+            with self.subTest(name=name):
+                self.assertEqual(release.check_png((release.ROOT / name).read_bytes(), name), [])
+
+    def check(self, content, name=None):
+        with patch.object(release, "PNG_FILES", {self.name: (2, 2)}):
+            return release.check_png(content, name or self.name)
+
+    def test_accepts_only_reviewed_encoding_and_dimensions(self):
+        self.assertEqual(self.check(png_fixture()), [])
+        self.assertEqual(self.check(png_fixture(
+            before=png_chunk(b"pHYs", struct.pack(">IIB", 9449, 9449, 1)))), [])
+        for content in (
+            png_fixture(dimensions=(3, 2)), png_fixture(encoding=(16, 2, 0, 0, 0)),
+            png_fixture(encoding=(8, 6, 0, 0, 0)), png_fixture(encoding=(8, 2, 0, 0, 1)),
+        ):
+            with self.subTest(content=content[:29]):
+                self.assertTrue(self.check(content))
+
+    def test_rejects_unreviewed_paths_signature_and_oversized_files(self):
+        self.assertTrue(self.check(png_fixture(), "docs/figures/other.png"))
+        self.assertTrue(self.check(b"not a png"))
+        self.assertTrue(self.check(png_fixture() + b"x" * 2_000_000))
+
+    def test_rejects_text_exif_animation_unknown_chunks_and_bad_resolution(self):
+        for kind in (b"tEXt", b"iTXt", b"zTXt", b"eXIf", b"acTL", b"tIME", b"zzZZ"):
+            with self.subTest(kind=kind):
+                self.assertTrue(self.check(png_fixture(before=png_chunk(kind, b"payload"))))
+        for payload in (b"", struct.pack(">IIB", 1, 1, 2)):
+            self.assertTrue(self.check(png_fixture(before=png_chunk(b"pHYs", payload))))
+
+    def test_rejects_truncation_checksums_missing_end_and_trailing_bytes(self):
+        original = png_fixture()
+        corrupt = bytearray(original)
+        corrupt[29] ^= 1
+        for content in (
+            original[:10], original[:-1], original[:-12], bytes(corrupt),
+            original + b"concealed", original + original,
+        ):
+            with self.subTest(size=len(content)):
+                self.assertTrue(self.check(content))
+
+    def test_rejects_duplicate_headers_and_invalid_chunk_order(self):
+        header = png_chunk(b"IHDR", struct.pack(">IIBBBBB", 2, 2, 8, 2, 0, 0, 0))
+        physics = png_chunk(b"pHYs", struct.pack(">IIB", 1, 1, 1))
+        for content in (
+            png_fixture(before=header), png_fixture(before=physics + physics),
+            release.PNG_SIGNATURE + physics + png_fixture()[8:],
+            png_fixture()[:-12] + physics + png_chunk(b"IEND"),
+            release.PNG_SIGNATURE + header + png_chunk(b"IEND"),
+        ):
+            self.assertTrue(self.check(content))
+
+    def test_decompression_is_bounded_and_requires_exact_pixel_payload(self):
+        for compressed in (
+            b"invalid", zlib.compress(b"\x00" * 13),
+            zlib.compress(b"\x00" * 15), zlib.compress(b"\x00" * 1_000_000),
+            zlib.compress(b"\x00" * 14) + b"concealed",
+            zlib.compress(b"\x00" * 14) + zlib.compress(b"extra"),
+            zlib.compress(b"\x00" * 14)[:-1],
+            zlib.compress(b"\x05" + b"\x00" * 13),
+        ):
+            with self.subTest(size=len(compressed)):
+                self.assertTrue(self.check(png_fixture(image_data=compressed)))
 
 
 class SvgBoundaryTests(unittest.TestCase):
@@ -151,6 +237,19 @@ class ReleaseBoundaryTests(unittest.TestCase):
         self.manifest("other.svg")
         self.assertTrue(release.check())
 
+    def test_png_allowlisting_cannot_bypass_the_reviewed_paths_or_structure(self):
+        self.write("docs/figures/other.png", png_fixture())
+        self.manifest("docs/figures/other.png")
+        self.assertIn("Invalid allowlist path or file type.", release.check())
+        (self.root / "docs/figures/other.png").unlink()
+        name = "docs/figures/method_tree.png"
+        self.write(name, png_fixture())
+        self.manifest(name)
+        with patch.object(release, "PNG_FILES", {name: (2, 2)}):
+            self.assertEqual(release.check(), [])
+            self.write(name, png_fixture(after=b"hidden"))
+            self.assertTrue(release.check())
+
     def test_allowlisting_raw_file_does_not_bypass_type_boundary(self):
         self.write("traits.csv", "value\n1\n")
         self.manifest("traits.csv")
@@ -211,7 +310,7 @@ class ReleaseBoundaryTests(unittest.TestCase):
 
 
 class StaticSiteBoundaryTests(unittest.TestCase):
-    allowed = release.SITE_FILES | release.SVG_FILES | {
+    allowed = release.SITE_FILES | release.SVG_FILES | release.PNG_FILES.keys() | {
         "docs/.nojekyll", "docs/METHODS.md", "docs/DATA_POLICY.md",
     }
 
@@ -227,6 +326,9 @@ class StaticSiteBoundaryTests(unittest.TestCase):
             '</body></html>'
         )
         self.assertEqual(release.check_html(content, self.allowed), [])
+        self.assertEqual(release.check_html(
+            '<img src="figures/method_tree.png" alt="Simulated trait mapping on a new tree">',
+            self.allowed), [])
 
     def test_actual_site_assets_pass_their_boundaries(self):
         self.assertEqual(release.check_html(

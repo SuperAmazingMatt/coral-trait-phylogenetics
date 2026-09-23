@@ -10,6 +10,8 @@ docs/METHODS.md
 docs/index.html
 docs/styles.css
 docs/gallery.js
+docs/figures/method_tree.png
+docs/figures/method_matrix.png
 docs/figures/synthetic_imputation.svg
 docs/figures/synthetic_pca.svg
 docs/figures/synthetic_correlation.svg
@@ -19,6 +21,7 @@ docs/workflow-outputs.md
 release-files.txt
 scripts/check_release.py
 scripts/export_gallery.R
+scripts/export_methods.R
 scripts/install_dependencies.R
 scripts/run_workflow.R
 tests/test_pipeline.R

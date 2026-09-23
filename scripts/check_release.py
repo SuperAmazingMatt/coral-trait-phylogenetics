@@ -3,9 +3,11 @@
 
 import argparse
 import re
+import struct
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+import zlib
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
@@ -18,6 +20,11 @@ SVG_FILES = {
     "docs/figures/synthetic_imputation.svg", "docs/figures/synthetic_pca.svg",
     "docs/figures/synthetic_correlation.svg",
 }
+PNG_FILES = {
+    "docs/figures/method_tree.png": (2400, 2400),
+    "docs/figures/method_matrix.png": (1800, 1680),
+}
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 SITE_FILES = {"docs/index.html", "docs/styles.css", "docs/gallery.js"}
 REPOSITORY_URL = "https://github.com/SuperAmazingMatt/coral-trait-phylogenetics"
 HTML_TAGS = {
@@ -65,6 +72,69 @@ PATTERNS = {
 
 def git(*args):
     return subprocess.check_output(["git", "-C", str(ROOT), *args])
+
+
+def check_png(raw, name):
+    """Check the two reviewed raster illustrations, not arbitrary image uploads.
+
+    Structure checks cannot identify empirical pixels. Review the generator and
+    visible drawing separately, and reproduce the image before publication.
+    """
+    if name not in PNG_FILES or len(raw) > 2_000_000 or not raw.startswith(PNG_SIGNATURE):
+        return ["PNG path, signature, or size is outside the reviewed boundary."]
+    offset = len(PNG_SIGNATURE)
+    chunks = []
+    compressed = bytearray()
+    while offset < len(raw):
+        if offset + 12 > len(raw):
+            return ["PNG contains a truncated chunk."]
+        length = struct.unpack(">I", raw[offset:offset + 4])[0]
+        end = offset + 12 + length
+        if end > len(raw):
+            return ["PNG contains a truncated chunk."]
+        kind = raw[offset + 4:offset + 8]
+        data = raw[offset + 8:end - 4]
+        expected_crc = struct.unpack(">I", raw[end - 4:end])[0]
+        if zlib.crc32(kind + data) & 0xffffffff != expected_crc:
+            return ["PNG contains an invalid chunk checksum."]
+        if kind not in {b"IHDR", b"pHYs", b"IDAT", b"IEND"}:
+            return ["PNG contains metadata or an unsupported chunk."]
+        if not chunks and kind != b"IHDR":
+            return ["PNG must begin with its image header."]
+        if kind == b"IHDR":
+            if chunks or length != 13:
+                return ["PNG contains an invalid or duplicate image header."]
+            header = struct.unpack(">IIBBBBB", data)
+            if header != (*PNG_FILES[name], 8, 2, 0, 0, 0):
+                return ["PNG dimensions or encoding differ from the reviewed illustration."]
+        elif kind == b"pHYs":
+            if b"pHYs" in chunks or b"IDAT" in chunks or length != 9 or data[-1] not in {0, 1}:
+                return ["PNG contains invalid or misplaced pixel dimensions."]
+        elif kind == b"IDAT":
+            if b"IDAT" in chunks and chunks[-1] != b"IDAT":
+                return ["PNG image data chunks must be consecutive."]
+            compressed.extend(data)
+        elif kind == b"IEND":
+            if length or b"IDAT" not in chunks or end != len(raw):
+                return ["PNG contains an invalid end marker or trailing content."]
+        chunks.append(kind)
+        offset = end
+    if not chunks or chunks[-1] != b"IEND":
+        return ["PNG is missing its end marker."]
+    width, height = PNG_FILES[name]
+    row_size = 1 + width * 3
+    expected_size = row_size * height
+    try:
+        decoder = zlib.decompressobj()
+        pixels = decoder.decompress(compressed, expected_size + 1)
+    except zlib.error:
+        return ["PNG contains invalid compressed image data."]
+    if (len(pixels) != expected_size or not decoder.eof or
+            decoder.unused_data or decoder.unconsumed_tail):
+        return ["PNG image payload has unexpected length or trailing data."]
+    if any(pixels[start] > 4 for start in range(0, expected_size, row_size)):
+        return ["PNG contains an invalid scanline filter."]
+    return []
 
 
 def check_svg(content):
@@ -245,7 +315,7 @@ class SiteMarkup(HTMLParser):
                 return
         elif (tag, attribute) in {("img", "src"), ("link", "href"), ("script", "src")}:
             resolved = local_site_path(value, self.allowed)
-            permitted = SVG_FILES if tag == "img" else {
+            permitted = SVG_FILES | PNG_FILES.keys() if tag == "img" else {
                 "docs/styles.css" if tag == "link" else "docs/gallery.js"
             }
             if resolved in permitted and not urlsplit(value).fragment:
@@ -308,7 +378,7 @@ def check(tracked=False):
         path = PurePosixPath(name)
         if (not name or path.is_absolute() or ".." in path.parts or
                 "\\" in name or str(path) != name or
-                (name not in SPECIAL and name not in SVG_FILES and
+                (name not in SPECIAL and name not in SVG_FILES and name not in PNG_FILES and
                  name not in SITE_FILES and path.suffix not in SUFFIXES)):
             problems.append("Invalid allowlist path or file type.")
             continue
@@ -317,6 +387,9 @@ def check(tracked=False):
             problems.append(f"Missing file or symlink: {name}")
             continue
         raw = file.read_bytes()
+        if name in PNG_FILES:
+            problems.extend(f"{problem} File: {name}" for problem in check_png(raw, name))
+            continue
         if len(raw) > 500_000 or b"\x00" in raw:
             problems.append(f"Oversized or binary file: {name}")
             continue

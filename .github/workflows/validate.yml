@@ -31,9 +31,13 @@ jobs:
             any::phytools
             any::missForest
             any::caper
+            any::GGally
+            any::ggplot2
       - name: Test analysis behaviour
         run: Rscript tests/test_pipeline.R
       - name: Execute synthetic workflow
         run: Rscript scripts/run_workflow.R
+      - name: Render simulated methods illustrations
+        run: Rscript scripts/export_methods.R
       - name: Confirm tracked publication boundary
         run: python3 scripts/check_release.py --tracked
